@@ -4,7 +4,7 @@
 #include <assert.h>
 #include "wfc.h"
 
-static char charBoard[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH];
+static char memBuffer[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH];
 
 static tile_t board[BOARD_HEIGHT][BOARD_WIDTH];
 
@@ -81,7 +81,7 @@ static void insertBoardTile(int i, int j, const char *t,char charBoardp[BOARD_HE
     }
 }
 
-static void insertTilesInBoard(tile_t boardp[BOARD_HEIGHT][BOARD_WIDTH],char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
+static void insertBoardInBuffer(tile_t boardp[BOARD_HEIGHT][BOARD_WIDTH],char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
 {
     for (int x = 0; x < BOARD_HEIGHT; x++)
     {
@@ -149,7 +149,7 @@ static void initBoard(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
     }
 }
 
-static void printBoard(char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
+static void printBuffer(char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
 {
     for (int j = 0; j < BOARD_HEIGHT * TILE_HEIGHT; j++)
     {
@@ -164,19 +164,19 @@ static void printBoard(char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH *
 
 static tile_t *findLowestEntropyTile(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
 {
-    tile_t *entropy = &boartp[0][0];
+    tile_t *t = &boartp[0][0];
 
     for (int x = 0; x < BOARD_HEIGHT; x++)
     {
         for (int y = 0; y < BOARD_WIDTH; y++)
         {
-            if ((boartp[x][y].entropy < entropy->entropy) && (boartp[x][y].collapsed == NOT_COLLAPSED))
+            if ((boartp[x][y].entropy < t->entropy) && (boartp[x][y].collapsed == NOT_COLLAPSED))
             {
-                entropy = &boartp[x][y];
+                t = &boartp[x][y];
             }
         }
     }
-    return entropy;
+    return t;
 }
 
 static void addToArray(int *dst, int *src, int *dstCount, int srcCount)
@@ -305,8 +305,8 @@ static void calculateNeighborsEntropy(rules_t * rulesp, tile_t *boartp)
                 dir_t list[4] = {};
                 dir_t *lstPtr = list;
                 int entropy = 0;
-                //
-                // get the available for this tile/neighbor
+                
+                // get the available tiles for this neighbor
                 findAvailableTiles((tile_t *)boartp->neighbors.list[n], lstPtr, rulesp);
                 entropy = calculateEntropy(lstPtr, ((tile_t *)boartp->neighbors.list[n])->available.a);
                 ((tile_t *)boartp->neighbors.list[n])->available.size = entropy;
@@ -360,11 +360,12 @@ int main(void)
         calculateNeighborsEntropy(rules, t);
 
         collapsedCounter++;
+        
         // if all tiles are collapsed stop otherwise keep looping
     } while (collapsedCounter < BOARD_WIDTH * BOARD_HEIGHT);
 
-    insertTilesInBoard(board,charBoard);
-    printBoard(charBoard);
+    insertBoardInBuffer(board,memBuffer);
+    printBuffer(memBuffer);
 
     return 0;
 }
