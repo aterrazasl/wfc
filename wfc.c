@@ -65,7 +65,7 @@ static int genRand(int min, int max)
     return ((double)rand() / RAND_MAX) * (max - (-min)) + (-min);
 }
 
-static void insertBoardTile(int i, int j, const char *t)
+static void insertBoardTile(int i, int j, const char *t,char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
 {
     assert(t != NULL && "tile cannot be NULL");
 
@@ -76,18 +76,18 @@ static void insertBoardTile(int i, int j, const char *t)
     {
         for (int x = 0; x < TILE_WIDTH; x++)
         {
-            charBoard[xoffset + x][yoffset + y] = t[(y + (x * 3))];
+            charBoardp[xoffset + x][yoffset + y] = t[(y + (x * 3))];
         }
     }
 }
 
-static void insertTilesInBoard(void)
+static void insertTilesInBoard(tile_t boardp[BOARD_HEIGHT][BOARD_WIDTH],char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
 {
     for (int x = 0; x < BOARD_HEIGHT; x++)
     {
         for (int y = 0; y < BOARD_WIDTH; y++)
         {
-            insertBoardTile(x, y, board[x][y].tile);
+            insertBoardTile(x, y, boardp[x][y].tile,charBoardp);
         }
     }
 }
@@ -145,18 +145,17 @@ static void initBoard(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
             boartp[x][y].tile = (char *)&emptyTile[0];
             boartp[x][y].pos.row = x;
             boartp[x][y].pos.col = y;
-            insertBoardTile(x, y, &emptyTile[0]);
         }
     }
 }
 
-static void printBoard(void)
+static void printBoard(char charBoardp[BOARD_HEIGHT * TILE_HEIGHT][BOARD_WIDTH * TILE_WIDTH])
 {
     for (int j = 0; j < BOARD_HEIGHT * TILE_HEIGHT; j++)
     {
         for (int i = 0; i < BOARD_WIDTH * TILE_WIDTH; i++)
         {
-            printf("%c", charBoard[j][i]);
+            printf("%c", charBoardp[j][i]);
         }
         printf("\r\n");
     }
@@ -191,7 +190,7 @@ static void addToArray(int *dst, int *src, int *dstCount, int srcCount)
     }
 }
 
-static int findAvailableTiles(tile_t *neighbor, dir_t *list)
+static int findAvailableTiles(tile_t *neighbor, dir_t *list, rules_t *rulesp)
 {
     int collapsedCount = 0;
 
@@ -206,19 +205,19 @@ static int findAvailableTiles(tile_t *neighbor, dir_t *list)
                 switch (n)
                 {
                 case 2:
-                    addToArray(list[n].a, &rules[tileIndex].up.a[0], &list[n].size, rules[tileIndex].up.size);
+                    addToArray(list[n].a, &rulesp[tileIndex].up.a[0], &list[n].size, rulesp[tileIndex].up.size);
                     collapsedCount++;
                     break;
                 case 3:
-                    addToArray(list[n].a, &rules[tileIndex].right.a[0], &list[n].size, rules[tileIndex].right.size);
+                    addToArray(list[n].a, &rulesp[tileIndex].right.a[0], &list[n].size, rulesp[tileIndex].right.size);
                     collapsedCount++;
                     break;
                 case 0:
-                    addToArray(list[n].a, &rules[tileIndex].down.a[0], &list[n].size, rules[tileIndex].down.size);
+                    addToArray(list[n].a, &rulesp[tileIndex].down.a[0], &list[n].size, rulesp[tileIndex].down.size);
                     collapsedCount++;
                     break;
                 case 1:
-                    addToArray(list[n].a, &rules[tileIndex].left.a[0], &list[n].size, rules[tileIndex].left.size);
+                    addToArray(list[n].a, &rulesp[tileIndex].left.a[0], &list[n].size, rulesp[tileIndex].left.size);
                     collapsedCount++;
                     break;
                 default:
@@ -294,7 +293,7 @@ int calculateEntropy(dir_t *list, int *repeated)
     return repCount;
 }
 
-static void calculateNeighborsEntropy(tile_t *boartp)
+static void calculateNeighborsEntropy(rules_t * rulesp, tile_t *boartp)
 {
 
     for (int n = 0; n < boartp->neighbors.len; n++)
@@ -308,7 +307,7 @@ static void calculateNeighborsEntropy(tile_t *boartp)
                 int entropy = 0;
                 //
                 // get the available for this tile/neighbor
-                findAvailableTiles((tile_t *)boartp->neighbors.list[n], lstPtr);
+                findAvailableTiles((tile_t *)boartp->neighbors.list[n], lstPtr, rulesp);
                 entropy = calculateEntropy(lstPtr, ((tile_t *)boartp->neighbors.list[n])->available.a);
                 ((tile_t *)boartp->neighbors.list[n])->available.size = entropy;
                 ((tile_t *)boartp->neighbors.list[n])->entropy = entropy;
@@ -358,14 +357,14 @@ int main(void)
 
         // Calculate and update the entropy of neighbors
         // and finds the available tiles based on the collapsed tiles
-        calculateNeighborsEntropy(t);
+        calculateNeighborsEntropy(rules, t);
 
         collapsedCounter++;
         // if all tiles are collapsed stop otherwise keep looping
     } while (collapsedCounter < BOARD_WIDTH * BOARD_HEIGHT);
 
-    insertTilesInBoard();
-    printBoard();
+    insertTilesInBoard(board,charBoard);
+    printBoard(charBoard);
 
     return 0;
 }
