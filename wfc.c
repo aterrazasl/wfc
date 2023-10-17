@@ -12,6 +12,7 @@ static rules_t rules[5];
 
 static void createRules(void)
 {
+    //This rules describes the allowed indices for each side of the tile
     rules[0] = (rules_t){.up    = (dir_t){.a = {0, 1, 0}, .size = 2},
                          .right = (dir_t){.a = {0, 2, 0}, .size = 2},
                          .down  = (dir_t){.a = {0, 3, 0}, .size = 2},
@@ -59,14 +60,14 @@ static void printTiles(void)
     }
 }
 
-int genRand(int min, int max)
+static int genRand(int min, int max)
 {
     return ((double)rand() / RAND_MAX) * (max - (-min)) + (-min);
 }
 
 static void insertBoardTile(int i, int j, const char *t)
 {
-    assert(t != NULL);
+    assert(t != NULL && "tile cannot be NULL");
 
     int yoffset = j * TILE_WIDTH;
     int xoffset = i * TILE_HEIGHT;
@@ -80,16 +81,13 @@ static void insertBoardTile(int i, int j, const char *t)
     }
 }
 
-static void insertBoard(int i, int j, int t)
+static void insertTilesInBoard(void)
 {
-    int yoffset = j * TILE_WIDTH;
-    int xoffset = i * TILE_HEIGHT;
-
-    for (int y = 0; y < TILE_HEIGHT; y++)
+    for (int x = 0; x < BOARD_HEIGHT; x++)
     {
-        for (int x = 0; x < TILE_WIDTH; x++)
+        for (int y = 0; y < BOARD_WIDTH; y++)
         {
-            charBoard[yoffset + y][xoffset + x] = tiles[t][(x + (y * 3))];
+            insertBoardTile(x, y, board[x][y].tile);
         }
     }
 }
@@ -106,59 +104,32 @@ static void findNeighbors(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
                 {
                 case 0: // up
                     if (x != 0)
-                    {
                         insertItem(&boartp[x][y].neighbors, &boartp[x - 1][y]);
-                    }
                     else
-                    {
                         insertItem(&boartp[x][y].neighbors, NULL);
-                    }
                     break;
                 case 1: // right
                     if (y != BOARD_WIDTH - 1)
-                    {
                         insertItem(&boartp[x][y].neighbors, &boartp[x][y + 1]);
-                    }
                     else
-                    {
                         insertItem(&boartp[x][y].neighbors, NULL);
-                    }
                     break;
                 case 2: // down
                     if (x != BOARD_HEIGHT - 1)
-                    {
                         insertItem(&boartp[x][y].neighbors, &boartp[x + 1][y]);
-                    }
                     else
-                    {
                         insertItem(&boartp[x][y].neighbors, NULL);
-                    }
                     break;
                 case 3: // left
                     if (y != 0)
-                    {
                         insertItem(&boartp[x][y].neighbors, &boartp[x][y - 1]);
-                    }
                     else
-                    {
                         insertItem(&boartp[x][y].neighbors, NULL);
-                    }
                     break;
                 default:
                     break;
                 }
             }
-        }
-    }
-}
-
-static void insertTilesInBoard(void)
-{
-    for (int x = 0; x < BOARD_HEIGHT; x++)
-    {
-        for (int y = 0; y < BOARD_WIDTH; y++)
-        {
-            insertBoardTile(x, y, board[x][y].tile);
         }
     }
 }
@@ -341,11 +312,29 @@ static void calculateNeighborsEntropy(tile_t *boartp)
                 entropy = calculateEntropy(lstPtr, ((tile_t *)boartp->neighbors.list[n])->available.a);
                 ((tile_t *)boartp->neighbors.list[n])->available.size = entropy;
                 ((tile_t *)boartp->neighbors.list[n])->entropy = entropy;
-                if (entropy == 0)
-                    printf("entropy equals 0\r\n");
+                assert(entropy != 0 && "No options found!!!");
             }
         }
     }
+}
+
+static void selectRandomTile(tile_t *t)
+{
+    // on first time run, all tiles have same entropy
+    if (t->entropy == TILE_COUNT)
+    {
+        int x = genRand(0, TILE_COUNT - 1);
+        t->tile = &tiles[x][0];
+        t->tileIndex = x;
+    }
+    else
+    {
+        int rnd = genRand(0, t->available.size);
+        t->tileIndex = t->available.a[rnd];
+        t->tile = &tiles[t->tileIndex][0];
+    }
+
+    t->collapsed = COLLAPSED;
 }
 
 int main(void)
@@ -360,39 +349,19 @@ int main(void)
     tile_t *t = NULL;
     do
     {
-
-        int x;
         // pick tile with least entropy
-        t = findLowestEntropyTile(board); // TODO: Create method to find the board tile with less entropy and not collapsed
+        t = findLowestEntropyTile(board);
 
-        if (t->entropy == 5)
-        {
-            x = genRand(0, 4);
-            t->tile = &tiles[x][0]; // TODO; create rules anBd method to rand pick an available tile
-            t->tileIndex = x;
-        }
-        else
-        {
-
-            // t->tile = &(t->available->a[genRand(0,t->available->size)]);
-            int rnd = genRand(0, t->available.size);
-            t->tileIndex = t->available.a[rnd];
-            t->tile = &tiles[t->tileIndex][0];
-        }
-
-        // Select a random tile based on the rules
-
-        t->collapsed = COLLAPSED;
-        collapsedCounter++;
+        // Select a random tile from the available tiles based on entropy
+        // of the collapsed tiles
+        selectRandomTile(t);
 
         // Calculate and update the entropy of neighbors
+        // and finds the available tiles based on the collapsed tiles
         calculateNeighborsEntropy(t);
 
-        // if entropy is 0 or all tiles are collapsed stop otherwise loop
-
-        // insertTilesInBoard();
-        // printBoard();
-        // printf("-----------------------\r\n");
+        collapsedCounter++;
+        // if all tiles are collapsed stop otherwise keep looping
     } while (collapsedCounter < BOARD_WIDTH * BOARD_HEIGHT);
 
     insertTilesInBoard();
