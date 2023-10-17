@@ -6,8 +6,8 @@
 #define TILE_HEIGHT 3
 #define TILE_SIZE TILE_WIDTH *TILE_HEIGHT
 #define TILE_COUNT 5
-#define BOARD_WIDTH 16
-#define BOARD_HEIGHT 8
+#define BOARD_WIDTH 49
+#define BOARD_HEIGHT 12
 #define MAX_NEIGHBORS 4
 #define COLLAPSED 1
 #define NOT_COLLAPSED 0
@@ -51,7 +51,7 @@ static const char tiles[TILE_COUNT][TILE_SIZE] = {{' ', ' ', ' ', ' ', ' ', ' ',
                                                   {' ', '|', ' ', ' ', '|', '~', ' ', '|', ' '},
                                                   {' ', ' ', ' ', '~', '~', '~', ' ', '|', ' '},
                                                   {' ', '|', ' ', '~', '|', ' ', ' ', '|', ' '}};
-                                                  
+
 static const char emptyTile[TILE_SIZE] = {'*', '*', '*', '*', '*', '*', '*', '*', '*'};
 
 

@@ -44,22 +44,6 @@ static void insertItem(list_t *list, tile_t *item)
     list->len++;
 }
 
-static void printTiles(void)
-{
-    for (int i = 0; i < TILE_COUNT; i++)
-    {
-        for (int y = 0; y < 3; y++)
-        {
-            for (int x = 0; x < 3; x++)
-            {
-                printf("%c", tiles[i][(x + (y * 3))]);
-            }
-            printf("\r\n");
-        }
-        printf("\r\n");
-    }
-}
-
 static int genRand(int min, int max)
 {
     return ((double)rand() / RAND_MAX) * (max - (-min)) + (-min);
@@ -76,7 +60,7 @@ static void insertBoardTile(int i, int j, const char *t,char charBoardp[BOARD_HE
     {
         for (int x = 0; x < TILE_WIDTH; x++)
         {
-            charBoardp[xoffset + x][yoffset + y] = t[(y + (x * 3))];
+            charBoardp[xoffset + x][yoffset + y] = t[(y + (x * TILE_WIDTH))];
         }
     }
 }
@@ -253,10 +237,10 @@ int calculateEntropy(dir_t *list, int *repeated)
 {
 
     int repCount = 0;
-    dir_t *listPtr[4] = {};
+    dir_t *listPtr[MAX_NEIGHBORS] = {};
 
     int index = 0;
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < MAX_NEIGHBORS; i++)
     {
         if (list[i].size != 0)
         {
@@ -302,7 +286,7 @@ static void calculateNeighborsEntropy(rules_t * rulesp, tile_t *boartp)
         {
             if (((tile_t *)boartp->neighbors.list[n])->collapsed == NOT_COLLAPSED)
             {
-                dir_t list[4] = {};
+                dir_t list[MAX_NEIGHBORS] = {};
                 dir_t *lstPtr = list;
                 int entropy = 0;
                 
