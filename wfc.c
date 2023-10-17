@@ -10,7 +10,7 @@ static tile_t board[BOARD_HEIGHT][BOARD_WIDTH];
 
 static rules_t rules[5];
 
-static void createRules(void)
+static void createRules(rules_t *rules)
 {
     //This rules describes the allowed indices for each side of the tile
     rules[0] = (rules_t){.up    = (dir_t){.a = {0, 1, 0}, .size = 2},
@@ -134,17 +134,17 @@ static void findNeighbors(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
     }
 }
 
-static void initBoard(void)
+static void initBoard(tile_t boartp[BOARD_HEIGHT][BOARD_WIDTH])
 {
     for (int x = 0; x < BOARD_HEIGHT; x++)
     {
         for (int y = 0; y < BOARD_WIDTH; y++)
         {
-            board[x][y].entropy = TILE_COUNT;
-            board[x][y].collapsed = NOT_COLLAPSED;
-            board[x][y].tile = (char *)&emptyTile[0];
-            board[x][y].pos.row = x;
-            board[x][y].pos.col = y;
+            boartp[x][y].entropy = TILE_COUNT;
+            boartp[x][y].collapsed = NOT_COLLAPSED;
+            boartp[x][y].tile = (char *)&emptyTile[0];
+            boartp[x][y].pos.row = x;
+            boartp[x][y].pos.col = y;
             insertBoardTile(x, y, &emptyTile[0]);
         }
     }
@@ -191,7 +191,7 @@ static void addToArray(int *dst, int *src, int *dstCount, int srcCount)
     }
 }
 
-static int findAvailableTiles(int tileIndex2, tile_t *neighbor, dir_t *list)
+static int findAvailableTiles(tile_t *neighbor, dir_t *list)
 {
     int collapsedCount = 0;
 
@@ -308,7 +308,7 @@ static void calculateNeighborsEntropy(tile_t *boartp)
                 int entropy = 0;
                 //
                 // get the available for this tile/neighbor
-                findAvailableTiles(boartp->tileIndex, (tile_t *)boartp->neighbors.list[n], lstPtr);
+                findAvailableTiles((tile_t *)boartp->neighbors.list[n], lstPtr);
                 entropy = calculateEntropy(lstPtr, ((tile_t *)boartp->neighbors.list[n])->available.a);
                 ((tile_t *)boartp->neighbors.list[n])->available.size = entropy;
                 ((tile_t *)boartp->neighbors.list[n])->entropy = entropy;
@@ -318,7 +318,7 @@ static void calculateNeighborsEntropy(tile_t *boartp)
     }
 }
 
-static void selectRandomTile(tile_t *t)
+static void selectRandomAvailableTile(tile_t *t)
 {
     // on first time run, all tiles have same entropy
     if (t->entropy == TILE_COUNT)
@@ -341,20 +341,20 @@ int main(void)
 {
     srand(time(NULL));
 
-    initBoard();
-    createRules();
+    initBoard(board);
     findNeighbors(board);
 
+    createRules(rules);
+
     int collapsedCounter = 0;
-    tile_t *t = NULL;
     do
     {
         // pick tile with least entropy
-        t = findLowestEntropyTile(board);
+        tile_t * t = findLowestEntropyTile(board);
 
         // Select a random tile from the available tiles based on entropy
         // of the collapsed tiles
-        selectRandomTile(t);
+        selectRandomAvailableTile(t);
 
         // Calculate and update the entropy of neighbors
         // and finds the available tiles based on the collapsed tiles
