@@ -12,26 +12,26 @@ static rules_t rules[5];
 
 static void createRules(void)
 {
-    rules[0] = (rules_t){.up = (dir_t){.a = {0, 1, 0}, .size = 2},
+    rules[0] = (rules_t){.up    = (dir_t){.a = {0, 1, 0}, .size = 2},
                          .right = (dir_t){.a = {0, 2, 0}, .size = 2},
-                         .down = (dir_t){.a = {0, 3, 0}, .size = 2},
-                         .left = (dir_t){.a = {0, 4, 0}, .size = 2}};
-    rules[1] = (rules_t){.up = (dir_t){.a = {2, 3, 4}, .size = 3},
+                         .down  = (dir_t){.a = {0, 3, 0}, .size = 2},
+                         .left  = (dir_t){.a = {0, 4, 0}, .size = 2}};
+    rules[1] = (rules_t){.up    = (dir_t){.a = {2, 3, 4}, .size = 3},
                          .right = (dir_t){.a = {3, 4, 1}, .size = 3},
-                         .down = (dir_t){.a = {0, 3, 0}, .size = 2},
-                         .left = (dir_t){.a = {2, 3, 1}, .size = 3}};
-    rules[2] = (rules_t){.up = (dir_t){.a = {3, 4, 2}, .size = 3},
+                         .down  = (dir_t){.a = {0, 3, 0}, .size = 2},
+                         .left  = (dir_t){.a = {2, 3, 1}, .size = 3}};
+    rules[2] = (rules_t){.up    = (dir_t){.a = {3, 4, 2}, .size = 3},
                          .right = (dir_t){.a = {1, 3, 4}, .size = 3},
-                         .down = (dir_t){.a = {1, 4, 2}, .size = 3},
-                         .left = (dir_t){.a = {0, 4, 0}, .size = 2}};
-    rules[3] = (rules_t){.up = (dir_t){.a = {0, 1, 0}, .size = 2},
+                         .down  = (dir_t){.a = {1, 4, 2}, .size = 3},
+                         .left  = (dir_t){.a = {0, 4, 0}, .size = 2}};
+    rules[3] = (rules_t){.up    = (dir_t){.a = {0, 1, 0}, .size = 2},
                          .right = (dir_t){.a = {1, 4, 3}, .size = 3},
-                         .down = (dir_t){.a = {1, 2, 4}, .size = 3},
-                         .left = (dir_t){.a = {1, 2, 3}, .size = 3}};
-    rules[4] = (rules_t){.up = (dir_t){.a = {2, 3, 4}, .size = 3},
+                         .down  = (dir_t){.a = {1, 2, 4}, .size = 3},
+                         .left  = (dir_t){.a = {1, 2, 3}, .size = 3}};
+    rules[4] = (rules_t){.up    = (dir_t){.a = {2, 3, 4}, .size = 3},
                          .right = (dir_t){.a = {0, 2, 0}, .size = 2},
-                         .down = (dir_t){.a = {1, 2, 4}, .size = 3},
-                         .left = (dir_t){.a = {1, 2, 3}, .size = 3}};
+                         .down  = (dir_t){.a = {1, 2, 4}, .size = 3},
+                         .left  = (dir_t){.a = {1, 2, 3}, .size = 3}};
 }
 
 static void insertItem(list_t *list, tile_t *item)
